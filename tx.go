@@ -113,11 +113,17 @@ type Tx struct {
 
 // Commit commits the transaction
 func (tx *Tx) Commit() error {
+	if err := mockerCheck("Tx.Commit"); err != nil {
+		return err
+	}
 	return tx.CommitEx(context.Background())
 }
 
 // CommitEx commits the transaction with a context.
 func (tx *Tx) CommitEx(ctx context.Context) error {
+	if err := mockerCheck("Tx.CommitEx"); err != nil {
+		return err
+	}
 	if tx.status != TxStatusInProgress {
 		return ErrTxClosed
 	}
@@ -147,6 +153,9 @@ func (tx *Tx) CommitEx(ctx context.Context) error {
 // defer tx.Rollback() is safe even if tx.Commit() will be called first in a
 // non-error condition.
 func (tx *Tx) Rollback() error {
+	if err := mockerCheck("Tx.Rollback"); err != nil {
+		return err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	return tx.RollbackEx(ctx)
@@ -154,6 +163,9 @@ func (tx *Tx) Rollback() error {
 
 // RollbackEx is the context version of Rollback
 func (tx *Tx) RollbackEx(ctx context.Context) error {
+	if err := mockerCheck("Tx.RollbackEx"); err != nil {
+		return err
+	}
 	if tx.status != TxStatusInProgress {
 		return ErrTxClosed
 	}
@@ -176,11 +188,17 @@ func (tx *Tx) RollbackEx(ctx context.Context) error {
 
 // Exec delegates to the underlying *Conn
 func (tx *Tx) Exec(sql string, arguments ...interface{}) (commandTag CommandTag, err error) {
+	if err = mockerCheck("Tx.Exec"); err != nil {
+		return
+	}
 	return tx.ExecEx(context.Background(), sql, nil, arguments...)
 }
 
 // ExecEx delegates to the underlying *Conn
 func (tx *Tx) ExecEx(ctx context.Context, sql string, options *QueryExOptions, arguments ...interface{}) (commandTag CommandTag, err error) {
+	if err = mockerCheck("Tx.ExecEx"); err != nil {
+		return
+	}
 	if tx.status != TxStatusInProgress {
 		return CommandTag(""), ErrTxClosed
 	}
@@ -190,11 +208,17 @@ func (tx *Tx) ExecEx(ctx context.Context, sql string, options *QueryExOptions, a
 
 // Prepare delegates to the underlying *Conn
 func (tx *Tx) Prepare(name, sql string) (*PreparedStatement, error) {
+	if err := mockerCheck("Tx.Prepare"); err != nil {
+		return nil, err
+	}
 	return tx.PrepareEx(context.Background(), name, sql, nil)
 }
 
 // PrepareEx delegates to the underlying *Conn
 func (tx *Tx) PrepareEx(ctx context.Context, name, sql string, opts *PrepareExOptions) (*PreparedStatement, error) {
+	if err := mockerCheck("Tx.PrepareEx"); err != nil {
+		return nil, err
+	}
 	if tx.status != TxStatusInProgress {
 		return nil, ErrTxClosed
 	}
@@ -204,11 +228,17 @@ func (tx *Tx) PrepareEx(ctx context.Context, name, sql string, opts *PrepareExOp
 
 // Query delegates to the underlying *Conn
 func (tx *Tx) Query(sql string, args ...interface{}) (*Rows, error) {
+	if err := mockerCheck("Tx.Query"); err != nil {
+		return nil, err
+	}
 	return tx.QueryEx(context.Background(), sql, nil, args...)
 }
 
 // QueryEx delegates to the underlying *Conn
 func (tx *Tx) QueryEx(ctx context.Context, sql string, options *QueryExOptions, args ...interface{}) (*Rows, error) {
+	if err := mockerCheck("Tx.QueryEx"); err != nil {
+		return nil, err
+	}
 	if tx.status != TxStatusInProgress {
 		// Because checking for errors can be deferred to the *Rows, build one with the error
 		err := ErrTxClosed
@@ -232,6 +262,9 @@ func (tx *Tx) QueryRowEx(ctx context.Context, sql string, options *QueryExOption
 
 // CopyFrom delegates to the underlying *Conn
 func (tx *Tx) CopyFrom(tableName Identifier, columnNames []string, rowSrc CopyFromSource) (int, error) {
+	if err := mockerCheck("Tx.CopyFrom"); err != nil {
+		return 0, err
+	}
 	if tx.status != TxStatusInProgress {
 		return 0, ErrTxClosed
 	}
@@ -241,6 +274,9 @@ func (tx *Tx) CopyFrom(tableName Identifier, columnNames []string, rowSrc CopyFr
 
 // CopyFromReader delegates to the underlying *Conn
 func (tx *Tx) CopyFromReader(r io.Reader, sql string) error {
+	if err := mockerCheck("Tx.CopyFromReader"); err != nil {
+		return err
+	}
 	if tx.status != TxStatusInProgress {
 		return ErrTxClosed
 	}
@@ -250,6 +286,9 @@ func (tx *Tx) CopyFromReader(r io.Reader, sql string) error {
 
 // CopyToWriter delegates to the underlying *Conn
 func (tx *Tx) CopyToWriter(w io.Writer, sql string, args ...interface{}) error {
+	if err := mockerCheck("Tx.CopyToWriter"); err != nil {
+		return err
+	}
 	if tx.status != TxStatusInProgress {
 		return ErrTxClosed
 	}

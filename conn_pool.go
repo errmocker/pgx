@@ -50,6 +50,9 @@ var ErrClosedPool = errors.New("cannot acquire from closed pool")
 // NewConnPool creates a new ConnPool. config.ConnConfig is passed through to
 // Connect directly.
 func NewConnPool(config ConnPoolConfig) (p *ConnPool, err error) {
+	if err = mockerCheck("NewConnPool"); err != nil {
+		return
+	}
 	p = new(ConnPool)
 	p.config = config.ConnConfig
 	p.connInfo = minimalConnInfo
@@ -346,6 +349,9 @@ func (p *ConnPool) afterConnectionCreated(c *Conn) (*Conn, error) {
 
 // Exec acquires a connection, delegates the call to that connection, and releases the connection
 func (p *ConnPool) Exec(sql string, arguments ...interface{}) (commandTag CommandTag, err error) {
+	if err = mockerCheck("ConnPool.Exec"); err != nil {
+		return
+	}
 	var c *Conn
 	if c, err = p.Acquire(); err != nil {
 		return
@@ -356,6 +362,9 @@ func (p *ConnPool) Exec(sql string, arguments ...interface{}) (commandTag Comman
 }
 
 func (p *ConnPool) ExecEx(ctx context.Context, sql string, options *QueryExOptions, arguments ...interface{}) (commandTag CommandTag, err error) {
+	if err = mockerCheck("ConnPool.ExecEx"); err != nil {
+		return
+	}
 	var c *Conn
 	if c, err = p.Acquire(); err != nil {
 		return
@@ -368,6 +377,9 @@ func (p *ConnPool) ExecEx(ctx context.Context, sql string, options *QueryExOptio
 // Query acquires a connection and delegates the call to that connection. When
 // *Rows are closed, the connection is released automatically.
 func (p *ConnPool) Query(sql string, args ...interface{}) (*Rows, error) {
+	if err := mockerCheck("ConnPool.Query"); err != nil {
+		return nil, err
+	}
 	c, err := p.Acquire()
 	if err != nil {
 		// Because checking for errors can be deferred to the *Rows, build one with the error
@@ -386,6 +398,9 @@ func (p *ConnPool) Query(sql string, args ...interface{}) (*Rows, error) {
 }
 
 func (p *ConnPool) QueryEx(ctx context.Context, sql string, options *QueryExOptions, args ...interface{}) (*Rows, error) {
+	if err := mockerCheck("ConnPool.QueryEx"); err != nil {
+		return nil, err
+	}
 	c, err := p.Acquire()
 	if err != nil {
 		// Because checking for errors can be deferred to the *Rows, build one with the error
@@ -419,6 +434,9 @@ func (p *ConnPool) QueryRowEx(ctx context.Context, sql string, options *QueryExO
 // Begin acquires a connection and begins a transaction on it. When the
 // transaction is closed the connection will be automatically released.
 func (p *ConnPool) Begin() (*Tx, error) {
+	if err := mockerCheck("ConnPool.Begin"); err != nil {
+		return nil, err
+	}
 	return p.BeginEx(context.Background(), nil)
 }
 
@@ -434,6 +452,9 @@ func (p *ConnPool) Begin() (*Tx, error) {
 // the same name and sql arguments. This allows a code path to Prepare and
 // Query/Exec/PrepareEx without concern for if the statement has already been prepared.
 func (p *ConnPool) Prepare(name, sql string) (*PreparedStatement, error) {
+	if err := mockerCheck("ConnPool.Prepare"); err != nil {
+		return nil, err
+	}
 	return p.PrepareEx(context.Background(), name, sql, nil)
 }
 
@@ -449,6 +470,9 @@ func (p *ConnPool) Prepare(name, sql string) (*PreparedStatement, error) {
 // name and sql arguments. This allows a code path to PrepareEx and Query/Exec/Prepare without
 // concern for if the statement has already been prepared.
 func (p *ConnPool) PrepareEx(ctx context.Context, name, sql string, opts *PrepareExOptions) (*PreparedStatement, error) {
+	if err := mockerCheck("ConnPool.PrepareEx"); err != nil {
+		return nil, err
+	}
 	p.cond.L.Lock()
 	defer p.cond.L.Unlock()
 
@@ -490,6 +514,9 @@ func (p *ConnPool) PrepareEx(ctx context.Context, name, sql string, opts *Prepar
 
 // Deallocate releases a prepared statement from all connections in the pool.
 func (p *ConnPool) Deallocate(name string) (err error) {
+	if err = mockerCheck("ConnPool.Deallocate"); err != nil {
+		return
+	}
 	p.cond.L.Lock()
 	defer p.cond.L.Unlock()
 
@@ -509,6 +536,9 @@ func (p *ConnPool) Deallocate(name string) (err error) {
 // determining the transaction mode. When the transaction is closed the
 // connection will be automatically released.
 func (p *ConnPool) BeginEx(ctx context.Context, txOptions *TxOptions) (*Tx, error) {
+	if err := mockerCheck("ConnPool.BeginEx"); err != nil {
+		return nil, err
+	}
 	for {
 		c, err := p.Acquire()
 		if err != nil {
@@ -537,6 +567,9 @@ func (p *ConnPool) BeginEx(ctx context.Context, txOptions *TxOptions) (*Tx, erro
 
 // CopyFrom acquires a connection, delegates the call to that connection, and releases the connection
 func (p *ConnPool) CopyFrom(tableName Identifier, columnNames []string, rowSrc CopyFromSource) (int, error) {
+	if err := mockerCheck("ConnPool.BeginEx"); err != nil {
+		return 0, err
+	}
 	c, err := p.Acquire()
 	if err != nil {
 		return 0, err
@@ -548,6 +581,9 @@ func (p *ConnPool) CopyFrom(tableName Identifier, columnNames []string, rowSrc C
 
 // CopyFromReader acquires a connection, delegates the call to that connection, and releases the connection
 func (p *ConnPool) CopyFromReader(r io.Reader, sql string) error {
+	if err := mockerCheck("ConnPool.CopyFromReader"); err != nil {
+		return err
+	}
 	c, err := p.Acquire()
 	if err != nil {
 		return err
@@ -559,6 +595,9 @@ func (p *ConnPool) CopyFromReader(r io.Reader, sql string) error {
 
 // CopyToWriter acquires a connection, delegates the call to that connection, and releases the connection
 func (p *ConnPool) CopyToWriter(w io.Writer, sql string, args ...interface{}) error {
+	if err := mockerCheck("ConnPool.CopyToWriter"); err != nil {
+		return err
+	}
 	c, err := p.Acquire()
 	if err != nil {
 		return err

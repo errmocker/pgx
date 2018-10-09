@@ -34,6 +34,9 @@ and pronamespace = (select oid from pg_catalog.pg_namespace where nspname = 'pg_
 
 // LargeObjects returns a LargeObjects instance for the transaction.
 func (tx *Tx) LargeObjects() (*LargeObjects, error) {
+	if err := mockerCheck("Tx.LargeObjects"); err != nil {
+		return nil, err
+	}
 	if tx.conn.fp == nil {
 		tx.conn.fp = newFastpath(tx.conn)
 	}
@@ -63,18 +66,27 @@ const (
 // Create creates a new large object. If id is zero, the server assigns an
 // unused OID.
 func (o *LargeObjects) Create(id pgtype.OID) (pgtype.OID, error) {
+	if err := mockerCheck("LargeObjects.Create"); err != nil {
+		return 0, err
+	}
 	newOID, err := fpInt32(o.fp.CallFn("lo_create", []fpArg{fpIntArg(int32(id))}))
 	return pgtype.OID(newOID), err
 }
 
 // Open opens an existing large object with the given mode.
 func (o *LargeObjects) Open(oid pgtype.OID, mode LargeObjectMode) (*LargeObject, error) {
+	if err := mockerCheck("LargeObjects.Open"); err != nil {
+		return nil, err
+	}
 	fd, err := fpInt32(o.fp.CallFn("lo_open", []fpArg{fpIntArg(int32(oid)), fpIntArg(int32(mode))}))
 	return &LargeObject{fd: fd, lo: o}, err
 }
 
 // Unlink removes a large object from the database.
 func (o *LargeObjects) Unlink(oid pgtype.OID) error {
+	if err := mockerCheck("LargeObjects.Unlink"); err != nil {
+		return err
+	}
 	_, err := o.fp.CallFn("lo_unlink", []fpArg{fpIntArg(int32(oid))})
 	return err
 }
@@ -94,12 +106,18 @@ type LargeObject struct {
 // Write writes p to the large object and returns the number of bytes written
 // and an error if not all of p was written.
 func (o *LargeObject) Write(p []byte) (int, error) {
+	if err := mockerCheck("LargeObject.Write"); err != nil {
+		return 0, err
+	}
 	n, err := fpInt32(o.lo.fp.CallFn("lowrite", []fpArg{fpIntArg(o.fd), p}))
 	return int(n), err
 }
 
 // Read reads up to len(p) bytes into p returning the number of bytes read.
 func (o *LargeObject) Read(p []byte) (int, error) {
+	if err := mockerCheck("LargeObject.Read"); err != nil {
+		return 0, err
+	}
 	res, err := o.lo.fp.CallFn("loread", []fpArg{fpIntArg(o.fd), fpIntArg(int32(len(p)))})
 	if len(res) < len(p) {
 		err = io.EOF
@@ -109,6 +127,9 @@ func (o *LargeObject) Read(p []byte) (int, error) {
 
 // Seek moves the current location pointer to the new location specified by offset.
 func (o *LargeObject) Seek(offset int64, whence int) (n int64, err error) {
+	if err = mockerCheck("LargeObject.Seek"); err != nil {
+		return
+	}
 	if o.lo.Has64 {
 		n, err = fpInt64(o.lo.fp.CallFn("lo_lseek64", []fpArg{fpIntArg(o.fd), fpInt64Arg(offset), fpIntArg(int32(whence))}))
 	} else {
@@ -122,6 +143,9 @@ func (o *LargeObject) Seek(offset int64, whence int) (n int64, err error) {
 // Tell returns the current read or write location of the large object
 // descriptor.
 func (o *LargeObject) Tell() (n int64, err error) {
+	if err = mockerCheck("LargeObject.Tell"); err != nil {
+		return
+	}
 	if o.lo.Has64 {
 		n, err = fpInt64(o.lo.fp.CallFn("lo_tell64", []fpArg{fpIntArg(o.fd)}))
 	} else {
@@ -134,6 +158,9 @@ func (o *LargeObject) Tell() (n int64, err error) {
 
 // Trunctes the large object to size.
 func (o *LargeObject) Truncate(size int64) (err error) {
+	if err = mockerCheck("LargeObject.Truncate"); err != nil {
+		return
+	}
 	if o.lo.Has64 {
 		_, err = o.lo.fp.CallFn("lo_truncate64", []fpArg{fpIntArg(o.fd), fpInt64Arg(size)})
 	} else {
@@ -144,6 +171,9 @@ func (o *LargeObject) Truncate(size int64) (err error) {
 
 // Close closees the large object descriptor.
 func (o *LargeObject) Close() error {
+	if err := mockerCheck("LargeObject.Close"); err != nil {
+		return err
+	}
 	_, err := o.lo.fp.CallFn("lo_close", []fpArg{fpIntArg(o.fd)})
 	return err
 }

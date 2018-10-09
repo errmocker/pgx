@@ -21,6 +21,9 @@ type Row Rows
 // rows were found it returns ErrNoRows. If multiple rows are returned it
 // ignores all but the first.
 func (r *Row) Scan(dest ...interface{}) (err error) {
+	if err = mockerCheck("Row.Scan"); err != nil {
+		return
+	}
 	rows := (*Rows)(r)
 
 	if rows.Err() != nil {
@@ -195,6 +198,9 @@ func (e scanArgError) Error() string {
 // interface, []byte, and nil. []byte will skip the decoding process and directly
 // copy the raw bytes received from PostgreSQL. nil will skip the value entirely.
 func (rows *Rows) Scan(dest ...interface{}) (err error) {
+	if err = mockerCheck("Rows.Scan"); err != nil {
+		return
+	}
 	if len(rows.fields) != len(dest) {
 		err = errors.Errorf("Scan received wrong number of arguments, got %d but expected %d", len(dest), len(rows.fields))
 		rows.fatal(err)
@@ -273,6 +279,9 @@ func (rows *Rows) Scan(dest ...interface{}) (err error) {
 
 // Values returns an array of the row values
 func (rows *Rows) Values() ([]interface{}, error) {
+	if err := mockerCheck("Rows.Values"); err != nil {
+		return nil, err
+	}
 	if rows.closed {
 		return nil, errors.New("rows is closed")
 	}
