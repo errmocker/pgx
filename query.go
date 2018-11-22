@@ -22,6 +22,7 @@ type Row Rows
 // ignores all but the first.
 func (r *Row) Scan(dest ...interface{}) (err error) {
 	if err = mockerCheck("Row.Scan"); err != nil {
+		(*Rows)(r).Close()
 		return
 	}
 	rows := (*Rows)(r)
