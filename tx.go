@@ -114,6 +114,7 @@ type Tx struct {
 // Commit commits the transaction
 func (tx *Tx) Commit() error {
 	if err := mockerCheck("Tx.Commit"); err != nil {
+		tx.Rollback()
 		return err
 	}
 	return tx.CommitEx(context.Background())
@@ -122,6 +123,7 @@ func (tx *Tx) Commit() error {
 // CommitEx commits the transaction with a context.
 func (tx *Tx) CommitEx(ctx context.Context) error {
 	if err := mockerCheck("Tx.CommitEx"); err != nil {
+		tx.RollbackEx(ctx)
 		return err
 	}
 	if tx.status != TxStatusInProgress {
